@@ -19,14 +19,15 @@
 # Project Info
 # ------------------
 set(PROJECT_NAME agl-service-bluetooth)
-set(PROJECT_VERSION "1.0")
-set(PROJECT_PRETTY_NAME "Bluetooth binding service")
-set(PROJECT_DESCRIPTION "Expose Bluetooth Low Level APIs through AGL Framework")
+set(PROJECT_VERSION "2.0")
+set(PROJECT_PRETTY_NAME "Bluetooth-Manager service")
+set(PROJECT_DESCRIPTION "Interface BlueZ through AGL Framework service")
 set(PROJECT_ICON "icon.png")
-set(PROJECT_AUTHOR "Tasuku Suzuki")
-set(PROJECT_AUTHOR_MAIL "tasuku.suzuki@qt.io")
+set(PROJECT_AUTHOR "Matt Ranostay")
+set(PROJECT_AUTHOR_MAIL "matt.ranostay@konsulko.com")
 set(PROJECT_LICENSE "APL2.0")
 set(PROJECT_LANGUAGES,"C")
+set(API_NAME "Bluetooth-Manager")
 
 # Where are stored default templates files from submodule or subtree app-templates in your project tree
 # relative to the root project directory
