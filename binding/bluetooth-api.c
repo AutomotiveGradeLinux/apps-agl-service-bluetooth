@@ -1311,7 +1311,7 @@ static void bluetooth_version(afb_req_t request)
 	afb_req_success(request, jresp, "Bluetooth - Binding version");
 }
 
-static const struct afb_verb_v3 bluetooth_verbs[] = {
+static const afb_verb_t bluetooth_verbs[] = {
 	{
 		.verb = "subscribe",
 		.session = AFB_SESSION_NONE,
@@ -1384,7 +1384,7 @@ static const struct afb_verb_v3 bluetooth_verbs[] = {
 /*
  * description of the binding for afb-daemon
  */
-const struct afb_binding_v3 afbBindingV3 = {
+const afb_binding_t afbBindingV3 = {
 	.api = "Bluetooth-Manager",
 	.specification = "bluetooth manager API",
 	.verbs = bluetooth_verbs,
