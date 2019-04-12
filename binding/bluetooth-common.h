@@ -93,10 +93,6 @@ struct call_work {
 	GDBusMethodInvocation *invocation;
 };
 
-/* init methods in bluetooth-rfkill.c */
-
-int bluetooth_monitor_init(void);
-
 /* agent methods in bluetooth-agent.c */
 
 int bluetooth_register_agent(struct init_data *id);
