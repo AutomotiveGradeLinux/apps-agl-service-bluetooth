@@ -76,7 +76,7 @@ static void mediaplayer1_connect_disconnect(struct bluetooth_state *ns,
 	*g_strrstr(path, "/") = '\0';
 
 	for (; *tmp; tmp++) {
-		reply = bluez_call(ns, "device", path, state ? "ConnectProfile" : "DisconnectProfile", g_variant_new("(&s)", *tmp), NULL);
+		reply = bluez_call(ns, BLUEZ_AT_DEVICE, path, state ? "ConnectProfile" : "DisconnectProfile", g_variant_new("(&s)", *tmp), NULL);
 		if (!reply)
 			break;
 	}
@@ -997,11 +997,11 @@ static void bluetooth_connect_device(afb_req_t request)
 	afb_req_addref(request);
 
 	if (uuid)
-		cw->cpw = bluez_call_async(ns, "device", device,
+		cw->cpw = bluez_call_async(ns, BLUEZ_AT_DEVICE, device,
 			"ConnectProfile", g_variant_new("(&s)", uuid), &error,
 			connect_service_callback, cw);
 	else
-		cw->cpw = bluez_call_async(ns, "device", device,
+		cw->cpw = bluez_call_async(ns, BLUEZ_AT_DEVICE, device,
 			"Connect", NULL, &error,
 			connect_service_callback, cw);
 
@@ -1110,7 +1110,7 @@ static void bluetooth_pair_device(afb_req_t request)
 	cw->request = request;
 	afb_req_addref(request);
 
-	cw->cpw = bluez_call_async(ns, "device", device, "Pair", NULL, &error,
+	cw->cpw = bluez_call_async(ns, BLUEZ_AT_DEVICE, device, "Pair", NULL, &error,
 			pair_service_callback, cw);
 
 	if (!cw->cpw) {
@@ -1219,7 +1219,7 @@ static void bluetooth_remove_device(afb_req_t request)
 		return;
 	}
 
-	jval = bluez_get_property(ns, "device", device, FALSE, "Adapter", &error);	
+	jval = bluez_get_property(ns, BLUEZ_AT_DEVICE, device, FALSE, "Adapter", &error);
 
 	if (!jval) {
 		afb_req_fail_f(request, "failed",
