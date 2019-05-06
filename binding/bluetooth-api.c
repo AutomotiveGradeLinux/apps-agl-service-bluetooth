@@ -79,6 +79,7 @@ static void mediaplayer1_connect_disconnect(struct bluetooth_state *ns,
 		reply = bluez_call(ns, BLUEZ_AT_DEVICE, path, state ? "ConnectProfile" : "DisconnectProfile", g_variant_new("(&s)", *tmp), NULL);
 		if (!reply)
 			break;
+		g_variant_unref(reply);
 	}
 
 	g_free(path);
