@@ -985,7 +985,7 @@ static void bluetooth_connect_device(afb_req_t request)
 	/* optional, connect single profile */
 	uuid = afb_req_value(request, "uuid");
 
-	cw = call_work_create(ns, "device", device,
+	cw = call_work_create(ns, BLUEZ_AT_DEVICE, device,
 			"connect_service", "Connect", &error);
 	if (!cw) {
 		afb_req_fail_f(request, "failed", "can't queue work %s",
@@ -1099,7 +1099,7 @@ static void bluetooth_pair_device(afb_req_t request)
 		return;
 	}
 
-	cw = call_work_create(ns, "device", device,
+	cw = call_work_create(ns, BLUEZ_AT_DEVICE, device,
 			"pair_device", "Pair", &error);
 	if (!cw) {
 		afb_req_fail_f(request, "failed", "can't queue work %s",
