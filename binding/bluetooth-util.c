@@ -68,7 +68,8 @@ int str2boolean(const char *value)
 json_object *json_object_copy(json_object *jval)
 {
 	json_object *jobj;
-	int i, len;
+	size_t len;
+	int i;
 
 	/* handle NULL */
 	if (!jval)
@@ -682,7 +683,8 @@ GVariant *property_json_to_gvariant(
 	double d;
 	const char *jvalstr, *str;
 	char c;
-	int i, len;
+	size_t len;
+	int i;
 	gboolean is_config;
 
 	if (!fmt)
@@ -922,7 +924,8 @@ GVariant *property_json_to_gvariant(
 json_object *get_property_collect(json_object *jreqprop, json_object *jprop,
 		GError **error)
 {
-	int i, len;
+	size_t len;
+	int i;
 	json_object *jkey, *jval, *jobj = NULL, *jobjval;
 	const char *key;
 
@@ -1067,7 +1070,7 @@ gchar *return_bluez_path(afb_req_t request) {
 
 gchar **json_array_to_strv(json_object *jobj)
 {
-	int len = json_object_array_length(jobj);
+	size_t len = json_object_array_length(jobj);
 	gchar **val = g_malloc0(sizeof(gchar *) * (len + 1));
 	int i;
 
