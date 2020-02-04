@@ -1303,15 +1303,6 @@ out_success:
 	afb_req_success(request, NULL, "Bluetooth - AVRCP controls");
 }
 
-static void bluetooth_version(afb_req_t request)
-{
-	json_object *jresp = json_object_new_object();
-
-	json_object_object_add(jresp, "version", json_object_new_string("2.0"));
-
-	afb_req_success(request, jresp, "Bluetooth - Binding version");
-}
-
 static const afb_verb_t bluetooth_verbs[] = {
 	{
 		.verb = "subscribe",
@@ -1373,11 +1364,6 @@ static const afb_verb_t bluetooth_verbs[] = {
 		.session = AFB_SESSION_NONE,
 		.callback = bluetooth_avrcp_controls,
 		.info = "AVRCP controls"
-	}, {
-		.verb = "version",
-		.session = AFB_SESSION_NONE,
-		.callback = bluetooth_version,
-		.info = "Binding API version",
 	},
 	{ } /* marker for end of the array */
 };
