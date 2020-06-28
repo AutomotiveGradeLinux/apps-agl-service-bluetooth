@@ -17,10 +17,6 @@
 --]]
 
 
-
--- Version Verb test
-_AFT.testVerbStatusSuccess('testBtVersionSuccess','Bluetooth-Manager','version', {})
-
 -- Default Adapter test
 _AFT.testVerbStatusSuccess('testBtDefaultAdapterSuccess','Bluetooth-Manager','default_adapter', {})
 
