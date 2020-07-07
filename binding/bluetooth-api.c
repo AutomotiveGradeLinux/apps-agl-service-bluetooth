@@ -300,7 +300,7 @@ static void bluez_devices_signal_callback(
 
 		jresp = json_object_new_object();
 
-                json_process_path(jresp, path);
+		json_process_path(jresp, path);
 
 		jobj = json_object_new_object();
 
@@ -519,6 +519,26 @@ static void bluez_devices_signal_callback(
 	json_object_put(jresp);
 }
 
+static int bluetooth_get_adapters_count(struct init_data *id)
+{
+	struct bluetooth_state *ns =id->ns;
+	GError *error = NULL;
+	json_object *jresp, *jobj = NULL;
+	int count = 0;
+
+	jresp = object_properties(ns, &error);
+	if (error) {
+		AFB_INFO("object_properties for adapters count error: %s",
+			error->message);
+		g_clear_error(&error);
+	} else {
+		json_object_object_get_ex(jresp, "adapters", &jobj);
+		count =  json_object_array_length(jobj);
+		json_object_put(jresp);
+	}
+	return count;
+}
+
 static struct bluetooth_state *bluetooth_init(GMainLoop *loop)
 {
 	struct bluetooth_state *ns;
@@ -623,12 +643,19 @@ static gpointer bluetooth_func(gpointer ptr)
 	}
 
 	id->ns = ns;
-	rc = bluetooth_register_agent(id);
-	if (rc) {
-		AFB_ERROR("bluetooth_register_agent() failed");
-		goto err_no_agent;
+	rc = bluetooth_get_adapters_count(id);
+	if (rc > 0) {
+		rc = bluetooth_register_agent(id);
+		if (rc) {
+			AFB_ERROR("bluetooth_register_agent() failed");
+			goto err_no_agent;
+		}
 	}
-
+	else {
+		//fake it
+		AFB_INFO("No adapter present, completed initialization");
+		signal_init_done(id, 0);
+	}
 	/* note that we wait for agent registration to signal done */
 
 	afb_api_set_userdata(id->api, ns);
@@ -891,7 +918,7 @@ static void bluetooth_adapter(afb_req_t request)
 
 			uuid = json_array_to_strv(jobj);
 			g_variant_builder_add(&builder, "{sv}", "UUIDs",
-					      g_variant_new_strv((const gchar * const *) uuid, -1));
+					g_variant_new_strv((const gchar * const *) uuid, -1));
 
 			g_strfreev(uuid);
 		}
@@ -1171,7 +1198,7 @@ static void bluetooth_confirm_pairing(afb_req_t request)
 	const char *value = afb_req_value(request, "pincode");
 
 	if (value)
-		pin = (int)strtol(value, NULL, 10);	
+		pin = (int)strtol(value, NULL, 10);
 
 	if (!value || !pin) {
 		afb_req_fail_f(request, "failed", "No pincode parameter");
