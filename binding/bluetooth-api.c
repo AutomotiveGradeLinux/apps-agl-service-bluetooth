@@ -663,7 +663,8 @@ static gpointer bluetooth_func(gpointer ptr)
 
 	g_main_loop_unref(ns->loop);
 
-	bluetooth_unregister_agent(ns);
+	if (ns->agent_path)
+		bluetooth_unregister_agent(ns);
 
 	bluetooth_cleanup(ns);
 	afb_api_set_userdata(id->api, NULL);
