@@ -531,6 +531,7 @@ static int bluetooth_get_adapters_count(struct init_data *id)
 		AFB_INFO("object_properties for adapters count error: %s",
 			error->message);
 		g_clear_error(&error);
+		count = -EIO;
 	} else {
 		json_object_object_get_ex(jresp, "adapters", &jobj);
 		count =  json_object_array_length(jobj);
@@ -648,8 +649,11 @@ static gpointer bluetooth_func(gpointer ptr)
 		rc = bluetooth_register_agent(id);
 		if (rc) {
 			AFB_ERROR("bluetooth_register_agent() failed");
-			goto err_no_agent;
+			goto err_no_service;
 		}
+	}
+	else if (rc < 0) {
+		goto err_no_service;
 	}
 	else {
 		//fake it
@@ -671,7 +675,7 @@ static gpointer bluetooth_func(gpointer ptr)
 
 	return NULL;
 
-err_no_agent:
+err_no_service:
 	bluetooth_cleanup(ns);
 
 err_no_ns:
