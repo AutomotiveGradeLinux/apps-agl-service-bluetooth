@@ -1048,7 +1048,7 @@ gchar *return_bluez_path(afb_req_t request) {
 	const char *device, *tmp;
 
 	call_work_lock(ns);
-	adapter = adapter ? adapter : ns->default_adapter;
+	adapter = adapter ? adapter : ns->adapter;
 	call_work_unlock(ns);
 
 	device = afb_req_value(request, "device");

@@ -63,7 +63,7 @@ struct bluetooth_state {
 	gchar *mediaplayer_path;
 
 	/* adapter */
-	gchar *default_adapter;
+	gchar *adapter;
 };
 
 struct init_data {
@@ -71,6 +71,7 @@ struct init_data {
 	GMutex mutex;
 	gboolean init_done;
 	afb_api_t api;
+	gchar *default_adapter;
 	struct bluetooth_state *ns; /* before setting afb_api_set_userdata() */
 	int rc;
 };

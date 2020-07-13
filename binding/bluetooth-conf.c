@@ -38,7 +38,7 @@
 gchar *get_default_adapter(afb_api_t api)
 {
 	json_object *response, *query, *val;
-	gchar *adapter;
+	gchar *adapter = NULL;
 	int ret;
 
 	query = json_object_new_object();
@@ -46,13 +46,14 @@ gchar *get_default_adapter(afb_api_t api)
 
 	ret = afb_api_call_sync(api, "persistence", "read", query, &response, NULL, NULL);
 	if (ret < 0)
-		return g_strdup(BLUEZ_DEFAULT_ADAPTER);
+		goto out;
 
-	json_object_object_get_ex(response, "value", &val);
-	adapter = g_strdup(json_object_get_string(val));
+	if (json_object_object_get_ex(response, "value", &val))
+		adapter = g_strdup(json_object_get_string(val));
 	json_object_put(response);
 
-	return adapter ? adapter : g_strdup(BLUEZ_DEFAULT_ADAPTER);
+out:
+	return adapter;
 }
 
 int set_default_adapter(afb_api_t api, const char *adapter)

@@ -231,7 +231,7 @@ void call_work_destroy_unlocked(struct call_work *cw)
 
 	/* agent struct data */
 	g_free(cw->agent_data.device_path);
-
+	cw->agent_data.device_path = NULL;
 	g_free(cw->access_type);
 	g_free(cw->type_arg);
 	g_free(cw->method);
@@ -646,6 +646,9 @@ static gpointer bluetooth_func(gpointer ptr)
 	id->ns = ns;
 	rc = bluetooth_get_adapters_count(id);
 	if (rc > 0) {
+		/* TODO: add logic to match managed objects response
+		against default_adapter */
+		id->ns->adapter = id->default_adapter;
 		rc = bluetooth_register_agent(id);
 		if (rc) {
 			AFB_ERROR("bluetooth_register_agent() failed");
@@ -713,6 +716,10 @@ static int init(afb_api_t api)
 		return ret;
 	}
 
+	id->default_adapter = get_default_adapter(id->api);
+	if (!id->default_adapter)
+		id->default_adapter = g_strdup(BLUEZ_DEFAULT_ADAPTER);
+
 	args = json_object_new_object();
 	json_object_object_add(args , "technology", json_object_new_string("bluetooth"));
 	afb_api_call_sync(api, "network-manager", "enable_technology", args, NULL, NULL, NULL);
@@ -743,13 +750,16 @@ static int init(afb_api_t api)
 	else
 		AFB_INFO("bluetooth-binding operational");
 
-	id->ns->default_adapter = get_default_adapter(id->api);
-
 	return id->rc;
 }
 
 static void mediaplayer1_send_event(struct bluetooth_state *ns)
 {
+	if (!ns->mediaplayer_path) {
+		AFB_ERROR("NULL mediaplayer_path");
+		return;
+	}
+
 	gchar *player = g_strdup(ns->mediaplayer_path);
 	json_object *jresp = mediaplayer_properties(ns, NULL, player);
 
@@ -774,6 +784,11 @@ static void bluetooth_subscribe_unsubscribe(afb_req_t request,
 	const char *value;
 	afb_event_t event;
 	int rc;
+
+	if (!ns) {
+		afb_req_fail(request, "failed", "Cannot process request");
+		return;
+	}
 
 	/* if value exists means to set offline mode */
 	value = afb_req_value(request, "value");
@@ -826,9 +841,20 @@ static void bluetooth_list(afb_req_t request)
 	GError *error = NULL;
 	json_object *jresp;
 
-	jresp = object_properties(ns, &error);
+	if (!ns) {
+		afb_req_fail(request, "failed", "Cannot process request");
+		return;
+	}
 
-	afb_req_success(request, jresp, "Bluetooth - managed objects");
+	jresp = object_properties(ns, &error);
+	if (error) {
+		AFB_INFO("object_properties error: %s",
+			error->message);
+		g_clear_error(&error);
+		afb_req_fail(request, "failed", "BlueZ managed objects error");
+	} else
+		afb_req_success(request, jresp, "BlueZ managed objects");
+
 }
 
 static void bluetooth_state(afb_req_t request)
@@ -838,7 +864,12 @@ static void bluetooth_state(afb_req_t request)
 	json_object *jresp;
 	const char *adapter = afb_req_value(request, "adapter");
 
-	adapter = BLUEZ_ROOT_PATH(adapter ? adapter : ns->default_adapter);
+	if (!ns || (!adapter && !ns->adapter)) {
+		afb_req_fail(request, "failed", "No adapter");
+		return;
+	}
+
+	adapter = BLUEZ_ROOT_PATH(adapter ? adapter : ns->adapter);
 
 	jresp = adapter_properties(ns, &error, adapter);
 	if (!jresp) {
@@ -857,7 +888,12 @@ static void bluetooth_adapter(afb_req_t request)
 	const char *adapter = afb_req_value(request, "adapter");
 	const char *scan, *discoverable, *powered, *filter, *transport;
 
-	adapter = BLUEZ_ROOT_PATH(adapter ? adapter : ns->default_adapter);
+	if (!ns || (!adapter && !ns->adapter)) {
+		afb_req_fail(request, "failed", "No adapter");
+		return;
+	}
+
+	adapter = BLUEZ_ROOT_PATH(adapter ? adapter : ns->adapter);
 
 	scan = afb_req_value(request, "discovery");
 	if (scan) {
@@ -958,18 +994,25 @@ static void bluetooth_default_adapter(afb_req_t request)
 	struct bluetooth_state *ns = bluetooth_get_userdata(request);
 	const char *adapter = afb_req_value(request, "adapter");
 	json_object *jresp = json_object_new_object();
+	int rc;
 
-	call_work_lock(ns);
-	if (adapter) {
-		set_default_adapter(afb_req_get_api(request), adapter);
-
-		if (ns->default_adapter)
-			g_free(ns->default_adapter);
-		ns->default_adapter = g_strdup(adapter);
+	if (!ns || !adapter ) {
+		afb_req_fail(request, "failed",
+			     "No default adapter");
+		return;
 	}
 
-	json_object_object_add(jresp, "adapter", json_object_new_string(ns->default_adapter));
+	call_work_lock(ns);
+	rc = set_default_adapter(afb_req_get_api(request), adapter);
+
+	if (ns->adapter)
+		g_free(ns->adapter);
+	ns->adapter = g_strdup(adapter);
+
+	json_object_object_add(jresp, "adapter", json_object_new_string(ns->adapter));
 	call_work_unlock(ns);
+	if (rc)
+		AFB_DEBUG("Request to save default adapter to persistent storage failed ");
 
 	afb_req_success(request, jresp, "Bluetooth - default adapter");
 }
@@ -1206,7 +1249,7 @@ static void bluetooth_confirm_pairing(afb_req_t request)
 		pin = (int)strtol(value, NULL, 10);
 
 	if (!value || !pin) {
-		afb_req_fail_f(request, "failed", "No pincode parameter");
+		afb_req_fail(request, "failed", "No pincode parameter");
 		return;
 	}
 
