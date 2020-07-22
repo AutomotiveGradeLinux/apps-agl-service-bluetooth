@@ -630,6 +630,8 @@ static gpointer bluetooth_func(gpointer ptr)
 	GMainLoop *loop;
 	int rc = 0;
 
+	g_atomic_rc_box_acquire(id);
+
 	loop = g_main_loop_new(NULL, FALSE);
 	if (!loop) {
 		AFB_ERROR("Unable to create main loop");
@@ -675,6 +677,7 @@ static gpointer bluetooth_func(gpointer ptr)
 
 	bluetooth_cleanup(ns);
 	afb_api_set_userdata(id->api, NULL);
+	g_atomic_rc_box_release(id);
 
 	return NULL;
 
@@ -686,18 +689,24 @@ err_no_ns:
 
 err_no_loop:
 	signal_init_done(id, -1);
+	g_atomic_rc_box_release(id);
 
 	return NULL;
 }
 
 static int init(afb_api_t api)
 {
-	struct init_data init_data, *id = &init_data;
+	struct init_data *id = NULL;
 	json_object *args = NULL;
 	gint64 end_time;
 	int ret;
+	gboolean init_done;
 
-	memset(id, 0, sizeof(*id));
+	id = g_atomic_rc_box_new0(struct init_data);
+	if (!id)
+		return -ENOMEM;
+	g_atomic_rc_box_acquire(id);
+
 	id->init_done = FALSE;
 	id->rc = 0;
 	id->api = api;
@@ -737,20 +746,22 @@ static int init(afb_api_t api)
 		if (!g_cond_wait_until(&id->cond, &id->mutex, end_time))
 			break;
 	}
+	ret = id->rc;
+	init_done = id->init_done;
 	g_mutex_unlock(&id->mutex);
+	g_atomic_rc_box_release(id);
 
-	if (!id->init_done) {
+	if (!init_done) {
 		AFB_ERROR("bluetooth-binding init timeout");
 		return -1;
 	}
 
-	if (id->rc)
-		AFB_ERROR("bluetooth-binding init thread returned %d",
-				id->rc);
+	if (ret)
+		AFB_ERROR("bluetooth-binding init thread returned %d", ret);
 	else
 		AFB_INFO("bluetooth-binding operational");
 
-	return id->rc;
+	return ret;
 }
 
 static void mediaplayer1_send_event(struct bluetooth_state *ns)
