@@ -44,5 +44,23 @@ _AFT.testVerbStatusSuccess('testBtAdpStateSuccess','Bluetooth-Manager','adapter_
 -- Cancel pairing test - cancel an ongoing pairing
 -- _AFT.testVerbStatusSuccess('testBtCancelPairSuccess', 'Bluetooth-Manager', 'cancel_pairing', {})
 
--- Connect to a paired device
+-- Confirm pairing test - confirm incoming/outgoing bluetooth pairing pincode
+-- _AFT.testVerbStatusSuccess('testBtConfirmPairSuccess', 'Bluetooth-Manager', 'confirm_pairing', {pincode="31415"})
+
+-- Remove device test - remove already paired device
+-- _AFT.testVerbStatusSuccess('testBtRemoveDeviceSuccess', 'Bluetooth-Manager', 'remove_device', {device="dev_01_23_45_67_89_0A"})
+
+-- Connect to a paired device test - connect to already paired device
 -- _AFT.testVerbStatusSuccess('testBtConnectSuccess', 'Bluetooth-Manager', 'connect', {device="dev_01_23_45_67_89_0A"})
+
+-- avrcp_controls test -- requied connected to a smart phone
+-- _AFT.testVerbStatusSuccess('testBtConnectSuccess', 'Bluetooth-Manager', 'avrcp_controls', {action="Play"})
+-- _AFT.testVerbStatusSuccess('testBtConnectSuccess', 'Bluetooth-Manager', 'avrcp_controls', {action="Pause"})
+-- _AFT.testVerbStatusSuccess('testBtConnectSuccess', 'Bluetooth-Manager', 'avrcp_controls', {action="Stop"})
+-- _AFT.testVerbStatusSuccess('testBtConnectSuccess', 'Bluetooth-Manager', 'avrcp_controls', {action="Next"})
+-- _AFT.testVerbStatusSuccess('testBtConnectSuccess', 'Bluetooth-Manager', 'avrcp_controls', {action="Previous"})
+-- _AFT.testVerbStatusSuccess('testBtConnectSuccess', 'Bluetooth-Manager', 'avrcp_controls', {action="FastForward"})
+-- _AFT.testVerbStatusSuccess('testBtConnectSuccess', 'Bluetooth-Manager', 'avrcp_controls', {action="Rewind"})
+
+-- Disconnect to a connected device test
+-- _AFT.testVerbStatusSuccess('testBtDisConnectSuccess', 'Bluetooth-Manager', 'disconnect', {device="dev_01_23_45_67_89_0A"})
