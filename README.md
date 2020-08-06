@@ -149,11 +149,11 @@ This verb allows an client to get initial paired devices, and discovered unpaire
 
 avrcp_controls verb allow controlling the playback of the defined device
 
-| Name            | Description                                                                                  |
-|-----------------|----------------------------------------------------------------------------------------------|
-| adapter         | Name of the adapter (i.e. hci0)                                                              |
-| device          | Must be the name of the device (i.e. dev_88_0F_10_96_D3_20)                                  |
-| action          | Playback control action to take (e.g Play, Pause, Stop, Next, Previous, FastForward, Rewind) |
+| Name            | Description                                                                                                  |
+|-----------------|--------------------------------------------------------------------------------------------------------------|
+| adapter         | Name of the adapter (optional, i.e. hci0)                               |
+| device          | Must be the name of the device (optional, i.e. dev_88_0F_10_96_D3_20)  |
+| action          | Playback control action to take (e.g Play, Pause, Stop, Next, Previous, FastForward, Rewind)                 |
 
 ### connect/disconnect verbs
 
