@@ -534,7 +534,7 @@ static int bluetooth_get_adapters_count(struct init_data *id)
 		count = -EIO;
 	} else {
 		json_object_object_get_ex(jresp, "adapters", &jobj);
-		count =  json_object_array_length(jobj);
+		count = (int)json_object_array_length(jobj);
 		json_object_put(jresp);
 	}
 	return count;
