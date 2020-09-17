@@ -726,8 +726,12 @@ static int init(afb_api_t api)
 	}
 
 	id->default_adapter = get_default_adapter(id->api);
-	if (!id->default_adapter)
+	if (!id->default_adapter) {
 		id->default_adapter = g_strdup(BLUEZ_DEFAULT_ADAPTER);
+		ret = set_default_adapter(api, BLUEZ_DEFAULT_ADAPTER);
+		if (ret)
+			AFB_WARNING("Request to save default adapter to persistent storage failed ");
+	}
 
 	args = json_object_new_object();
 	json_object_object_add(args , "technology", json_object_new_string("bluetooth"));

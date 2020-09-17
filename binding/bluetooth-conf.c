@@ -66,7 +66,14 @@ int set_default_adapter(afb_api_t api, const char *adapter)
 	json_object_object_add(query, "value", json_object_new_string(adapter));
 
 	ret = afb_api_call_sync(api, "persistence", "update", query, &response, NULL, NULL);
+	if (ret < 0) {
+		ret = afb_api_call_sync(api, "persistence", "insert", query, &response, NULL, NULL);
+		if (ret < 0)
+			goto out;
+	}
+
 	json_object_put(response);
 
+out:
 	return ret;
 }
