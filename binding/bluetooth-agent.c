@@ -41,6 +41,10 @@
 static const gchar introspection_xml[] =
 "<node>"
 "   <interface name='org.bluez.Agent1'>"
+"       <method name='RequestPinCode'>"
+"           <arg name='device' direction='in' type='o'/>"
+"           <arg name='pincode' direction='out' type='s'/>"
+"       </method>"
 "      <method name='RequestConfirmation'>"
 "          <arg name='device' direction='in' type='o'/>"
 "          <arg name='passkey' direction='in' type='u'/>"
@@ -69,7 +73,7 @@ static void handle_method_call(
 	GError *error = NULL;
 	json_object *jev = NULL;
 	const gchar *path = NULL;
-
+	char *device = NULL;
 	/* AFB_INFO("sender=%s", sender_name);
 	AFB_INFO("object_path=%s", object_path);
 	AFB_INFO("interface=%s", interface_name);
@@ -114,6 +118,23 @@ static void handle_method_call(
 		afb_event_push(ns->agent_event, jev);
 
 		return;
+
+	} else if (!g_strcmp0(method_name, "RequestPinCode")) {
+
+		g_variant_get(parameters, "(o)", &device);
+
+		call_work_lock(ns);
+		cw = call_work_lookup_unlocked(ns, BLUEZ_AT_DEVICE, device, "pair_device");
+
+		if (!cw)
+			g_dbus_method_invocation_return_dbus_error(invocation, "org.bluez.Error.Rejected", "No connection pending");
+		else
+			g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", cw->agent_data.fixed_pincode));
+
+		call_work_unlock(ns);
+
+		return;
+
 	} else if (!g_strcmp0(method_name, "AuthorizeService")) {
 
 		/* g_variant_get(parameters, "(os)", &path, &service);

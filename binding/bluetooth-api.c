@@ -1200,6 +1200,8 @@ static void bluetooth_pair_device(afb_req_t request)
 	cw->request = request;
 	afb_req_addref(request);
 
+	cw->agent_data.fixed_pincode = get_pincode(afb_req_get_api(request));
+
 	cw->cpw = bluez_call_async(ns, BLUEZ_AT_DEVICE, device, "Pair", NULL, &error,
 			pair_service_callback, cw);
 
@@ -1392,6 +1394,24 @@ out_success:
 	afb_req_success(request, NULL, "Bluetooth - AVRCP controls");
 }
 
+static void bluetooth_pincode(afb_req_t request)
+{
+	char *error = NULL;
+	const char *pincode;
+	int rc;
+
+	pincode = afb_req_value(request, "pincode");
+	rc = set_pincode(afb_req_get_api(request), pincode, &error);
+
+	if (rc) {
+		afb_req_fail(request, "failed", error);
+		return;
+	}
+
+	afb_req_success(request, NULL, "Bluetooth - pincode");
+	return;
+}
+
 static const afb_verb_t bluetooth_verbs[] = {
 	{
 		.verb = "subscribe",
@@ -1453,7 +1473,11 @@ static const afb_verb_t bluetooth_verbs[] = {
 		.session = AFB_SESSION_NONE,
 		.callback = bluetooth_avrcp_controls,
 		.info = "AVRCP controls"
-	},
+	}, {
+		.verb = "set_pincode",
+		.session = AFB_SESSION_NONE,
+		.callback = bluetooth_pincode,
+		.info = "Set pincode for outgoing pairing"},
 	{ } /* marker for end of the array */
 };
 

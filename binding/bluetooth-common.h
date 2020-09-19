@@ -78,6 +78,7 @@ struct init_data {
 
 struct agent_data {
 	int pin_code;
+	gchar *fixed_pincode;
 	gchar *device_path;
 };
 
@@ -104,6 +105,9 @@ void bluetooth_unregister_agent(struct bluetooth_state *ns);
 
 gchar *get_default_adapter(afb_api_t api);
 int set_default_adapter(afb_api_t api, const char *adapter);
+
+int set_pincode(afb_api_t api, const char *pincode, char **error);
+gchar *get_pincode(afb_api_t api);
 
 /* utility methods in bluetooth-util.c */
 

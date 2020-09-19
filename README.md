@@ -20,7 +20,7 @@ Bluetooth service uses the respective BlueZ package to connect to bluetooth devi
 | cancel_pairing     | cancel an outgoing pair request                         |                                                                         |
 | confirm_pairing    | confirm incoming/outgoing bluetooth pairing pincode     | *Request:* {"pincode": 31415}                                           |
 | remove_device      | remove already paired device                            | *Request:* {"device": "dev_88_0F_10_96_D3_20"}                          |
-
+| set_pincode        | set pincode as string into database for outgoing pairing request                     | *Request:* {"pincode": "4321"}                                          |
 
 ### managed_objects verb
 

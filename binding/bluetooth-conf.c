@@ -77,3 +77,49 @@ int set_default_adapter(afb_api_t api, const char *adapter)
 out:
 	return ret;
 }
+
+gchar *get_pincode(afb_api_t api)
+{
+	json_object *response, *query, *val;
+	gchar *pincode = NULL;
+
+	query = json_object_new_object();
+	json_object_object_add(query, "key", json_object_new_string("pincode"));
+
+	afb_api_call_sync(api, "persistence", "read", query, &response, NULL, NULL);
+
+	if (json_object_object_get_ex(response, "value", &val))
+		pincode = g_strdup(json_object_get_string(val));
+	else
+		pincode = "1234";
+	json_object_put(response);
+
+	return pincode;
+}
+
+int set_pincode(afb_api_t api, const char *pincode, char **error)
+{
+	json_object *response, *query;
+	int ret;
+	gchar *endptr = NULL;
+	query = json_object_new_object();
+	if (strlen(pincode) > 8 || strlen(pincode) < 4)
+	{
+		*error = "length of pincode must be between 4 and 8";
+		return -1;
+	}
+
+	g_ascii_strtoll(pincode, &endptr, 10);
+	if (*endptr)
+	{
+		*error = "pincode must be as digits";
+		return -1;
+	}
+	json_object_object_add(query, "key", json_object_new_string("pincode"));
+	json_object_object_add(query, "value", json_object_new_string(pincode));
+
+	ret = afb_api_call_sync(api, "persistence", "update", query, &response, NULL, NULL);
+	json_object_put(response);
+
+	return ret;
+}
