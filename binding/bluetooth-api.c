@@ -1006,29 +1006,28 @@ static void bluetooth_adapter(afb_req_t request)
 
 static void bluetooth_default_adapter(afb_req_t request)
 {
-	struct bluetooth_state *ns = bluetooth_get_userdata(request);
 	const char *adapter = afb_req_value(request, "adapter");
 	json_object *jresp = json_object_new_object();
+	afb_api_t api = afb_req_get_api(request);
+	const char *adapter_default = get_default_adapter(api);
 	int rc;
 
-	if (!ns || !adapter ) {
-		afb_req_fail(request, "failed",
-			     "No default adapter");
-		return;
+	if (adapter) {
+		if (adapter_default && g_strcmp0(adapter_default, adapter)) {
+			rc = set_default_adapter(api, adapter);
+			if (rc) {
+				AFB_DEBUG("Request to save default adapter to persistent storage failed ");
+				afb_req_fail(request, "failed", "Update default adapter failed");
+				return;
+			}
+		}
+		json_object_object_add(jresp, "adapter", json_object_new_string(adapter));
+	} else if (adapter_default) {
+		json_object_object_add(jresp, "adapter", json_object_new_string(adapter_default));
+	} else {
+		afb_req_fail(request, "failed", "No default adapter");
+	        return;
 	}
-
-	call_work_lock(ns);
-	rc = set_default_adapter(afb_req_get_api(request), adapter);
-
-	if (ns->adapter)
-		g_free(ns->adapter);
-	ns->adapter = g_strdup(adapter);
-
-	json_object_object_add(jresp, "adapter", json_object_new_string(ns->adapter));
-	call_work_unlock(ns);
-	if (rc)
-		AFB_DEBUG("Request to save default adapter to persistent storage failed ");
-
 	afb_req_success(request, jresp, "Bluetooth - default adapter");
 }
 
