@@ -519,25 +519,45 @@ static void bluez_devices_signal_callback(
 	json_object_put(jresp);
 }
 
-static int bluetooth_get_adapters_count(struct init_data *id)
+static int bluetooth_select_init_adapter(struct init_data *id)
 {
 	struct bluetooth_state *ns =id->ns;
 	GError *error = NULL;
 	json_object *jresp, *jobj = NULL;
-	int count = 0;
+	int ret, i;
+	size_t count;
 
 	jresp = object_properties(ns, &error);
 	if (error) {
-		AFB_INFO("object_properties for adapters count error: %s",
+		AFB_INFO("object_properties for adapters error: %s",
 			error->message);
 		g_clear_error(&error);
-		count = -EIO;
+		ret = -EIO;
 	} else {
 		json_object_object_get_ex(jresp, "adapters", &jobj);
-		count = (int)json_object_array_length(jobj);
+		count = json_object_array_length(jobj);
+		ret = (int)count;
+
+		for (i = 1; (ret-i) >= 0; i++) {
+			json_object *idx = json_object_array_get_idx(jobj, count-i);
+			json_object *name = NULL;
+			const char *adapter;
+			json_object_object_get_ex(idx, "name", &name);
+			adapter = json_object_get_string(name);
+			if (!g_strcmp0(adapter, id->default_adapter)) {
+				id->ns->adapter = id->default_adapter;
+				break;
+			}
+			if (!(count-i)) {
+				/* fallback to 1st available adapter */
+				id->ns->adapter = g_strdup(adapter);
+				AFB_WARNING("default adapter %s not found, fell back to: %s",
+						id->default_adapter, adapter);
+			}
+		}
 		json_object_put(jresp);
 	}
-	return count;
+	return ret;
 }
 
 static struct bluetooth_state *bluetooth_init(GMainLoop *loop)
@@ -646,11 +666,8 @@ static gpointer bluetooth_func(gpointer ptr)
 	}
 
 	id->ns = ns;
-	rc = bluetooth_get_adapters_count(id);
+	rc = bluetooth_select_init_adapter(id);
 	if (rc > 0) {
-		/* TODO: add logic to match managed objects response
-		against default_adapter */
-		id->ns->adapter = id->default_adapter;
 		rc = bluetooth_register_agent(id);
 		if (rc) {
 			AFB_ERROR("bluetooth_register_agent() failed");
