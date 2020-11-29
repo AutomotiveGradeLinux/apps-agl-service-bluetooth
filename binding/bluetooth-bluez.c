@@ -99,6 +99,12 @@ static const struct property_info mediatransport_props[] = {
 	{ },
 };
 
+static const struct property_info mediacontrol_props[] = {
+	{ .name = "Connected",	.fmt = "b", },
+	{ .name = "Player",	.fmt = "s", },
+	{ },
+};
+
 const struct property_info *bluez_get_property_info(
 		const char *access_type, GError **error)
 {
@@ -112,6 +118,8 @@ const struct property_info *bluez_get_property_info(
 		pi = mediaplayer_props;
 	else if (!strcmp(access_type, BLUEZ_AT_MEDIATRANSPORT))
 		pi = mediatransport_props;
+	else if (!strcmp(access_type, BLUEZ_AT_MEDIACONTROL))
+		pi = mediacontrol_props;
 	else
 		g_set_error(error, NB_ERROR, NB_ERROR_ILLEGAL_ARGUMENT,
 				"illegal %s argument", access_type);
@@ -357,7 +365,8 @@ json_object *bluez_get_properties(struct bluetooth_state *ns,
 	if (!strcmp(access_type, BLUEZ_AT_DEVICE) ||
 	    !strcmp(access_type, BLUEZ_AT_MEDIAPLAYER) ||
 	    !strcmp(access_type, BLUEZ_AT_MEDIATRANSPORT) ||
-	    !strcmp(access_type, BLUEZ_AT_ADAPTER)) {
+	    !strcmp(access_type, BLUEZ_AT_ADAPTER) ||
+	    !strcmp(access_type, BLUEZ_AT_MEDIACONTROL)) {
 
 		pi = bluez_get_property_info(access_type, error);
 		if (!pi)
@@ -380,6 +389,8 @@ json_object *bluez_get_properties(struct bluetooth_state *ns,
 		interface2 = BLUEZ_MEDIATRANSPORT_INTERFACE;
 	else if (!strcmp(access_type, BLUEZ_AT_ADAPTER))
 		interface2 = BLUEZ_ADAPTER_INTERFACE;
+	else if (!strcmp(access_type, BLUEZ_AT_MEDIACONTROL))
+		interface2 = BLUEZ_MEDIACONTROL_INTERFACE;
 	else if (!strcmp(access_type, BLUEZ_AT_OBJECT))
 		interface2 = NULL;
 	else
@@ -404,7 +415,8 @@ json_object *bluez_get_properties(struct bluetooth_state *ns,
 	if (!strcmp(access_type, BLUEZ_AT_DEVICE) ||
 	    !strcmp(access_type, BLUEZ_AT_MEDIAPLAYER) ||
 	    !strcmp(access_type, BLUEZ_AT_MEDIATRANSPORT) ||
-	    !strcmp(access_type, BLUEZ_AT_ADAPTER)) {
+	    !strcmp(access_type, BLUEZ_AT_ADAPTER) ||
+	    !strcmp(access_type, BLUEZ_AT_MEDIACONTROL)) {
 		jprop = json_object_new_object();
 		g_variant_get(reply, "(a{sv})", &array);
 		while (g_variant_iter_loop(array, "{sv}", &key, &var)) {

@@ -1367,9 +1367,10 @@ static void bluetooth_avrcp_controls(afb_req_t request)
 {
 	struct bluetooth_state *ns = bluetooth_get_userdata(request);
 	const char *action = afb_req_value(request, "action");
-	gchar *device, *player;
+	gchar *device, *player = NULL;
 	GVariant *reply;
 	GError *error = NULL;
+	json_object *jval = NULL;
 
 	if (!action) {
 		afb_req_fail(request, "failed", "No action given");
@@ -1379,7 +1380,14 @@ static void bluetooth_avrcp_controls(afb_req_t request)
 	device = return_bluez_path(request);
 	if (device) {
 		/* TODO: handle multiple players per device */
-		player = g_strconcat(device, "/", BLUEZ_DEFAULT_PLAYER, NULL);
+		jval = bluez_get_property(ns, BLUEZ_AT_MEDIACONTROL, device, FALSE, "Player", NULL);
+		if (jval) {
+			player = (gchar *)json_object_get_string(jval);
+			json_object_put(jval);
+			jval = NULL;
+		}
+		if (!player)
+			player = g_strconcat(device, "/", BLUEZ_DEFAULT_PLAYER, NULL);
 		g_free(device);
 	} else {
 		player = g_strdup(ns->mediaplayer_path);

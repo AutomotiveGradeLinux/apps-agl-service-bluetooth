@@ -35,6 +35,7 @@
 #define BLUEZ_DEVICE_INTERFACE			BLUEZ_SERVICE ".Device1"
 #define BLUEZ_MEDIAPLAYER_INTERFACE		BLUEZ_SERVICE ".MediaPlayer1"
 #define BLUEZ_MEDIATRANSPORT_INTERFACE		BLUEZ_SERVICE ".MediaTransport1"
+#define BLUEZ_MEDIACONTROL_INTERFACE			BLUEZ_SERVICE ".MediaControl1"
 
 #define BLUEZ_OBJECT_PATH			"/"
 #define BLUEZ_PATH				"/org/bluez"
@@ -70,6 +71,7 @@
 #define BLUEZ_AT_AGENTMANAGER			"agent-manager"
 #define BLUEZ_AT_MEDIAPLAYER			"mediaplayer"
 #define BLUEZ_AT_MEDIATRANSPORT			"mediatransport"
+#define BLUEZ_AT_MEDIACONTROL			"mediacontrol"
 
 #define BLUEZ_DEFAULT_ADAPTER			"hci0"
 #define BLUEZ_DEFAULT_PLAYER			"player0"
