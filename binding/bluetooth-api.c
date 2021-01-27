@@ -1381,11 +1381,8 @@ static void bluetooth_avrcp_controls(afb_req_t request)
 	if (device) {
 		/* TODO: handle multiple players per device */
 		jval = bluez_get_property(ns, BLUEZ_AT_MEDIACONTROL, device, FALSE, "Player", NULL);
-		if (jval) {
+		if (jval)
 			player = (gchar *)json_object_get_string(jval);
-			json_object_put(jval);
-			jval = NULL;
-		}
 		if (!player)
 			player = g_strconcat(device, "/", BLUEZ_DEFAULT_PLAYER, NULL);
 		g_free(device);
