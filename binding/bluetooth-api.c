@@ -236,6 +236,8 @@ void call_work_destroy_unlocked(struct call_work *cw)
 	g_free(cw->type_arg);
 	g_free(cw->method);
 	g_free(cw->bluez_method);
+	g_free(cw->agent_data.fixed_pincode);
+	cw->agent_data.fixed_pincode = NULL;
 }
 
 void call_work_destroy(struct call_work *cw)

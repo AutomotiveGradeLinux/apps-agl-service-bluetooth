@@ -90,8 +90,8 @@ gchar *get_pincode(afb_api_t api)
 
 	if (json_object_object_get_ex(response, "value", &val))
 		pincode = g_strdup(json_object_get_string(val));
-	else
-		pincode = "1234";
+	if (!pincode)
+		pincode = g_strdup("1234");
 	json_object_put(response);
 
 	return pincode;
