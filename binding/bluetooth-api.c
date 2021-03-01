@@ -812,7 +812,7 @@ static void bluetooth_subscribe_unsubscribe(afb_req_t request,
 		gboolean unsub)
 {
 	struct bluetooth_state *ns = bluetooth_get_userdata(request);
-	json_object *jresp = json_object_new_object();
+	json_object *jresp;
 	const char *value;
 	afb_event_t event;
 	int rc;
@@ -852,6 +852,7 @@ static void bluetooth_subscribe_unsubscribe(afb_req_t request,
 		return;
 	}
 
+	jresp = json_object_new_object();
 	afb_req_success_f(request, jresp, "Bluetooth %s to event \"%s\"",
 			!unsub ? "subscribed" : "unsubscribed",
 			value);
@@ -1035,6 +1036,7 @@ static void bluetooth_default_adapter(afb_req_t request)
 			if (rc) {
 				AFB_DEBUG("Request to save default adapter to persistent storage failed ");
 				afb_req_fail(request, "failed", "Update default adapter failed");
+				json_object_put(jresp);
 				return;
 			}
 		}
@@ -1043,6 +1045,7 @@ static void bluetooth_default_adapter(afb_req_t request)
 		json_object_object_add(jresp, "adapter", json_object_new_string(adapter_default));
 	} else {
 		afb_req_fail(request, "failed", "No default adapter");
+		json_object_put(jresp);
 	        return;
 	}
 	afb_req_success(request, jresp, "Bluetooth - default adapter");
