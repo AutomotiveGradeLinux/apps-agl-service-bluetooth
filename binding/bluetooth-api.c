@@ -651,6 +651,8 @@ static gpointer bluetooth_func(gpointer ptr)
 	struct bluetooth_state *ns;
 	GMainLoop *loop;
 	int rc = 0;
+	unsigned int delay;
+	unsigned int attempt;
 
 	g_atomic_rc_box_acquire(id);
 
@@ -660,7 +662,7 @@ static gpointer bluetooth_func(gpointer ptr)
 		goto err_no_loop;
 	}
 
-	/* real bluetooth init */
+	// Do BlueZ D-Bus related init
 	ns = bluetooth_init(loop);
 	if (!ns) {
 		AFB_ERROR("bluetooth_init() failed");
@@ -668,26 +670,38 @@ static gpointer bluetooth_func(gpointer ptr)
 	}
 
 	id->ns = ns;
-	rc = bluetooth_select_init_adapter(id);
-	if (rc > 0) {
-		rc = bluetooth_register_agent(id);
-		if (rc) {
-			AFB_ERROR("bluetooth_register_agent() failed");
-			goto err_no_service;
-		}
+	rc = bluetooth_register_agent(id);
+	if (rc) {
+		AFB_ERROR("bluetooth_register_agent() failed");
+		goto err_no_agent;
 	}
-	else if (rc < 0) {
-		goto err_no_service;
-	}
-	else {
-		//fake it
-		AFB_INFO("No adapter present, completed initialization");
-		signal_init_done(id, 0);
-	}
-	/* note that we wait for agent registration to signal done */
 
 	afb_api_set_userdata(id->api, ns);
-	g_main_loop_run(loop);
+
+	// Let main process know initialization is done
+	signal_init_done(id, 0);
+
+	// Wait for an adapter to appear
+	rc = 0;
+	delay = 1;
+	attempt = 1;
+	while(rc <= 0) {
+		rc = bluetooth_select_init_adapter(id);
+		if (rc != 0)
+			break;
+
+		// Back off querying rate after the first 60 seconds
+		if (attempt++ == 60)
+			delay = 10;
+
+		sleep(delay);
+	}
+
+	if (rc > 0) {
+		g_main_loop_run(loop);
+	} else {
+		AFB_ERROR("bluetooth_select_init_adapter() failed");
+	}
 
 	g_main_loop_unref(ns->loop);
 
@@ -700,7 +714,7 @@ static gpointer bluetooth_func(gpointer ptr)
 
 	return NULL;
 
-err_no_service:
+err_no_agent:
 	bluetooth_cleanup(ns);
 
 err_no_ns:
@@ -757,8 +771,8 @@ static int init(afb_api_t api)
 	afb_api_call_sync(api, "network-manager", "enable_technology", args, NULL, NULL, NULL);
 
 	global_thread = g_thread_new("agl-service-bluetooth",
-				bluetooth_func,
-				id);
+				     bluetooth_func,
+				     id);
 
 	AFB_INFO("bluetooth-binding waiting for init done");
 
